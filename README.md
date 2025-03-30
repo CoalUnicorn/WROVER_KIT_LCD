@@ -1,7 +1,11 @@
 # Updated the code with help of AI to work with Arduino IDE
 Change the return type of jpgReadFile and jpgRead from uint32_t to UINT.
+
 Change the jpgDecode function signature to accept a function pointer that returns UINT instead of uint32_t.
+
 The jpgColor macro was defined in a clearer format to improve readability and ensure it is correctly recognized by the compiler.
+
+
 
 # Original README.md
 This is a library for the Adafruit ILI9341 display products
