@@ -15,6 +15,15 @@
 
 #include "WROVER_KIT_LCD.h"
 #include "pins_arduino.h"
+#include <soc/gpio_struct.h>
+
+
+/*
+ * JPEG
+ * */
+
+#include "rom/tjpgd.h"
+
 
 #define WROVER_CS               22
 #define WROVER_DC               21
@@ -553,13 +562,9 @@ void WROVER_KIT_LCD::drawBmpFile(fs::FS &fs, const char * path, uint16_t x, uint
     file.close();
 }
 
-/*
- * JPEG
- * */
-
-#include "rom/tjpgd.h"
-
-#define jpgColor(c) (((uint16_t)(((uint8_t*)(c))[0] & 0xF8) << 8) | ((uint16_t)(((uint8_t*)(c))[1] & 0xFC) << 3) | ((((uint8_t*)(c))[2] & 0xF8) >> 3))
+#define jpgColor(c) (((uint16_t)(((uint8_t*)(c))[0] & 0xF8) << 8) | \
+                      ((uint16_t)(((uint8_t*)(c))[1] & 0xFC) << 3) | \
+                      ((((uint8_t*)(c))[2] & 0xF8) >> 3))
 
 #if ARDUHAL_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_ERROR
 const char * jd_errors[] = {
@@ -591,10 +596,10 @@ typedef struct {
         uint16_t outHeight;
 } jpg_file_decoder_t;
 
-static uint32_t jpgReadFile(JDEC *decoder, uint8_t *buf, uint32_t len){
+static UINT jpgReadFile(JDEC *decoder, uint8_t *buf, UINT len) {
     jpg_file_decoder_t * jpeg = (jpg_file_decoder_t *)decoder->device;
     File * file = (File *)jpeg->src;
-    if(buf){
+    if(buf) {
         return file->read(buf, len);
     } else {
         file->seek(len, SeekCur);
@@ -602,16 +607,16 @@ static uint32_t jpgReadFile(JDEC *decoder, uint8_t *buf, uint32_t len){
     return len;
 }
 
-static uint32_t jpgRead(JDEC *decoder, uint8_t *buf, uint32_t len){
+static UINT jpgRead(JDEC *decoder, uint8_t *buf, UINT len) {
     jpg_file_decoder_t * jpeg = (jpg_file_decoder_t *)decoder->device;
-    if(buf){
+    if(buf) {
         memcpy(buf, (const uint8_t *)jpeg->src + jpeg->index, len);
     }
     jpeg->index += len;
     return len;
 }
 
-static uint32_t jpgWrite(JDEC *decoder, void *bitmap, JRECT *rect){
+static UINT jpgWrite(JDEC *decoder, void *bitmap, JRECT *rect) {
     jpg_file_decoder_t * jpeg = (jpg_file_decoder_t *)decoder->device;
     uint16_t x = rect->left;
     uint16_t y = rect->top;
@@ -676,7 +681,7 @@ static uint32_t jpgWrite(JDEC *decoder, void *bitmap, JRECT *rect){
     return 1;
 }
 
-static bool jpgDecode(jpg_file_decoder_t * jpeg, uint32_t(* reader)(JDEC*,uint8_t *, uint32_t)){
+static bool jpgDecode(jpg_file_decoder_t * jpeg, UINT (*reader)(JDEC*, uint8_t*, UINT)) {
     static uint8_t work[3100];
     JDEC decoder;
 
